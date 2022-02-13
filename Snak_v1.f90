@@ -2,22 +2,28 @@ program snak
     implicit none
     integer :: size=0, board(100,100)=0,x,y,dirint=0,score=1,ok=1
     character :: dirch
-
+    logical :: oldfile=.false.
     print *, "Welcome to Snak(My shittty cut down wersion of Snake)"
     print *, "Controls:"
     print *, " Up : w/numpad8"
     print *, "Down: s/numpad2"
     print *, "Left: a/numpad4"
     print *, "Right:d/numpad6"
-    do while(size>100 .or. size<10)
-        write (*, '(A31)',advance='no') "Set board size(10<=size<=100): "
-        read * , size
-    end do
-    x=size/2
-    y=size/2
-    call Move(board,x,y,dirint,size,ok)
-    call Apple(board,size,score)
-    do while(dirch /= '~' .and. dirch /= '`')
+    print *, "Exit :`/~/Q"
+    write (*, '(A23)',advance='no') "Load level.dat ?(y/n): "
+    read * ,dirch
+    if ( dirch=='y' ) call LoadDat(board,size,x,y,score,oldfile)
+    if(.not.oldfile) then
+        do while(size>100 .or. size<10)
+            write (*, '(A31)',advance='no') "Set board size(10<=size<=100): "
+            read * , size
+        end do
+        x=size/2
+        y=size/2
+        call Move(board,x,y,dirint,size,ok)
+        call Apple(board,size,score)
+    end if
+    do while(dirch /= '~' .and. dirch /= '`'.and. dirch /= 'Q'.and. dirch /= 'q')
         call Move(board,x,y,dirint,size,ok)
         if(ok==0)then
             write (*, '(A8/A6)',advance='no') "GameOver","Score:"
@@ -35,8 +41,51 @@ program snak
         call CH_to_INT(dirch,dirint)
         call Update(board,size)
     end do
+    if (dirch /= '~' .or. dirch /= '`'.and. dirch /= 'Q'.and. dirch /= 'q') then
+        if(ok/=0) then
+            write(*,'(A28)',advance='no') "Save board into file?(y/n): "
+            read * ,dirch
+            if ( dirch=='y' ) call SaveDat(board,size,x,y,score) 
+        end if
+    end if
     read *
 end program snak
+
+subroutine SaveDat(board, size, x, y, score)
+implicit none
+integer,dimension(100,100) ,intent(in) :: board
+integer,intent(in) :: size, x, y,score
+integer :: i,j
+open(1, file = 'level.dat')
+write(1,*) size, x, y, score
+do i=1,size
+    do j=1,size
+        write(1,*) board(i,j)
+    end do
+end do
+close(1)
+end subroutine SaveDat
+
+subroutine LoadDat(board, size, x, y, score,oldfile)
+    implicit none
+    integer,dimension(100,100) ,intent(out) :: board
+    integer,intent(out) :: size, x, y,score
+    integer :: i,j
+    logical,intent(out) :: oldfile
+    inquire(file = 'level.dat',exist=oldfile)
+    if(oldfile)then
+        open(2, file = 'level.dat',status='old')
+        read(2,*) size, x, y, score
+        do i=1,size
+            do j=1,size
+                read(2,*) board(i,j)
+            end do
+        end do
+        close(2)
+    else
+        print *,"level.dat do not exist"
+    end if
+end subroutine LoadDat
 
 subroutine Apple(board,  size,score)
 implicit none
