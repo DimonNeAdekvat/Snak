@@ -13,6 +13,7 @@ program snak
     write (*, '(A23)',advance='no') "Load level.dat ?(y/n): "
     read * ,dirch
     if ( dirch=='y' ) call LoadDat(board,size,x,y,score,oldfile)
+    if (oldfile) ok=3
     if(.not.oldfile) then
         do while(size>100 .or. size<10)
             write (*, '(A31)',advance='no') "Set board size(10<=size<=100): "
@@ -26,12 +27,13 @@ program snak
 
     !Main Loop
     do while(dirch /= '~' .and. dirch /= '`'.and. dirch /= 'Q'.and. dirch /= 'q')
-        call Move(board,x,y,dirint,size,ok)
-        if(ok/=2) call Update(board,size)
+        call CH_to_INT(dirch,dirint)
+        if(ok<3) call Move(board,x,y,dirint,size,ok)
+        if(ok<2) call Update(board,size)
         if(ok==0)then
             write (*, '(A8/A6)',advance='no') "GameOver","Score:"
             print *,score
-            if(score>(size*size)) print *,"You Won!"
+            if(score==(size*size)) print *,"You Won!"
             exit
         end if
         if(ok==2) then
@@ -40,8 +42,8 @@ program snak
         end if
         call SetPos(board,score,x,y)
         call PrintBoard(board,size,score)
+        if(ok==3) ok=1
         read * ,dirch
-        call CH_to_INT(dirch,dirint)
     end do
     if (dirch /= '~' .or. dirch /= '`'.and. dirch /= 'Q'.and. dirch /= 'q') then
         if(ok/=0) then
@@ -118,14 +120,14 @@ valid=1
 if (dirint==0) return
 if ( mod(dirint,2)==1 ) then
     if ( dirint<2 ) then
-        if(y-1==0 .or. board(y-1,x)>0) then
+        if(y-1==0 .or. board(y-1,x)>1) then
             valid=0
         else 
             if(board(y-1,x)<0) valid=2
             y=y-1
         end if
     else
-        if(y==size .or. board(y+1,x)>0) then
+        if(y==size .or. board(y+1,x)>1) then
             valid=0
         else 
             if(board(y+1,x)<0) valid=2
@@ -135,14 +137,14 @@ if ( mod(dirint,2)==1 ) then
 end if
 if ( mod(dirint,2)==0 ) then
     if ( dirint<3 ) then
-        if(x-1==0 .or. board(y,x-1)>0) then
+        if(x-1==0 .or. board(y,x-1)>1) then
             valid=0
         else 
             if(board(y,x-1)<0) valid=2
             x=x-1
         end if
     else
-        if(x==size .or. board(y,x+1)>0) then
+        if(x==size .or. board(y,x+1)>1) then
             valid=0
         else 
             if(board(y,x+1)<0) valid=2
