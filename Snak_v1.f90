@@ -23,8 +23,11 @@ program snak
         call Move(board,x,y,dirint,size,ok)
         call Apple(board,size,score)
     end if
+
+    !Main Loop
     do while(dirch /= '~' .and. dirch /= '`'.and. dirch /= 'Q'.and. dirch /= 'q')
         call Move(board,x,y,dirint,size,ok)
+        if(ok/=2) call Update(board,size)
         if(ok==0)then
             write (*, '(A8/A6)',advance='no') "GameOver","Score:"
             print *,score
@@ -39,7 +42,6 @@ program snak
         call PrintBoard(board,size,score)
         read * ,dirch
         call CH_to_INT(dirch,dirint)
-        call Update(board,size)
     end do
     if (dirch /= '~' .or. dirch /= '`'.and. dirch /= 'Q'.and. dirch /= 'q') then
         if(ok/=0) then
@@ -204,6 +206,7 @@ subroutine PrintBoard(board,size,score)
     do i=1,size
         write(*, '(A1)',advance='no') "#"
         do j=1,size
+            !write(*, '(I2)',advance='no') board(i,j)
             if(board(i,j)==-1) write(*, '(A2)',advance='no') "@)"
             if(board(i,j)>0 .and. board(i,j)<score) write(*, '(A2)',advance='no') "<>"
             if(board(i,j)==score) write(*, '(A2)',advance='no') "GG"
